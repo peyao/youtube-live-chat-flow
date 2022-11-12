@@ -134,7 +134,12 @@ const moveChatInputControl = () => {
   const container = document.querySelector(
     'yt-live-chat-message-input-renderer #container'
   )
-  container?.classList.add("ylcf-container");
+  container?.classList.add("ylcf-container")
+
+  if (container) {
+    const header = document.querySelector('yt-live-chat-header-renderer')
+    header?.classList.add("ylcf-with-input")
+  }
 
   // top : element includes live chat input ("Say something..."), user avatar, username
   const top = document.querySelector(
