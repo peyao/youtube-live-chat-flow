@@ -1,8 +1,13 @@
 # Flow Chat for YouTube Live
 
-![badge](https://github.com/fiahfy/youtube-live-chat-flow/workflows/Web%20Extension%20CI/badge.svg)
-
 > Chrome Extension for Flow Chat Messages on YouTube Live.
+
+## Fork changes
+
+- Removed option to have bottom chat controls. YouTube's JS code seems to dislike the input box being moved somewhere else and would throw an error causing user to be unable to chat.
+- Bottom chat controls have been replaced with input box above the original chat box (see screenshot). It isn't visible in fullscreen unless you scroll down which is a downgrade.
+
+![screenshot](.github/img/screenshot0.jpg)
 
 ## Features
 
@@ -13,7 +18,7 @@
 - Move the chat input to bottom controls on the video.
 - Add helper menu buttons on the chat list.
 
-## Screenshots
+## Screenshots (outdated as of this fork)
 
 ![screenshot](.github/img/screenshot1.gif)
 ![screenshot](.github/img/screenshot2.png)
