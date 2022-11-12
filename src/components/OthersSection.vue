@@ -8,7 +8,7 @@
       persistent-hint
       dense
     />
-    <v-switch
+    <!-- <v-switch
       v-model="bottomChatInputEnabled"
       class="mt-3 pt-0"
       label="Bottom Chat Input"
@@ -22,7 +22,7 @@
       class="mt-3 pt-0"
       label="Grow Bottom Chat Input"
       dense
-    />
+    /> -->
   </div>
 </template>
 

@@ -328,3 +328,7 @@
   width: 36px;
   height: 36px;
 }
+
+ytd-watch-flexy #columns > #secondary {
+  margin-top: var(--ytd-margin-2x);
+}

@@ -112,14 +112,6 @@ const addMenuButtons = () => {
   updateMenuButtons()
 }
 
-const updateBody = () => {
-  if (controller.settings?.growBottomChatInputEnabled) {
-    parent.document.body.classList.add('ylcf-grow-input')
-  } else {
-    parent.document.body.classList.remove('ylcf-grow-input')
-  }
-}
-
 const removeChatInputControl = () => {
   const button = parent.document.querySelector('.ylcf-controller')
   button && button.remove()
@@ -128,10 +120,6 @@ const removeChatInputControl = () => {
 
 const moveChatInputControl = () => {
   removeChatInputControl()
-
-  if (!controller.settings?.bottomChatInputEnabled) {
-    return
-  }
 
   // if no channels
   const interaction = document.querySelector(
@@ -142,9 +130,18 @@ const moveChatInputControl = () => {
   }
 
   // check inputs
+  // container for everything under regular chat box
+  const container = document.querySelector(
+    'yt-live-chat-message-input-renderer #container'
+  )
+  container?.classList.add("ylcf-container");
+
+  // top : element includes live chat input ("Say something..."), user avatar, username
   const top = document.querySelector(
     'yt-live-chat-message-input-renderer #container #top'
   )
+
+  // buttons : element includes buttons for emojis, superchat, live chat input length, send button
   const buttons = document.querySelector(
     'yt-live-chat-message-input-renderer #container #buttons.yt-live-chat-message-input-renderer'
   )
@@ -203,23 +200,7 @@ const moveChatInputControl = () => {
     }
   })
 
-  // add description
-  const button = document.createElement('button')
-  button.textContent = 'Chat Input is Moved to Bottom Controls'
-  button.addEventListener('click', () => {
-    input.focus()
-  })
-  const description = document.createElement('div')
-  description.classList.add('ylcf-description')
-  description.append(button)
-  buttons.parentElement?.insertBefore(description, buttons)
-
-  // add controls
   const controls = document.createElement('div')
-  controls.classList.add('ylcf-controller')
-  controls.append(top)
-  controls.append(messageButtons)
-  rightControls.parentElement?.insertBefore(controls, rightControls)
 
   // setup resize observer
   const controlsObserver = new ResizeObserver(
@@ -233,8 +214,6 @@ const moveChatInputControl = () => {
     }
   )
   controlsObserver.observe(controls)
-
-  parent.document.body.classList.add('ylcf-input-injected')
 }
 
 const addVideoEventListener = () => {
@@ -287,7 +266,6 @@ const init = async () => {
   addVideoEventListener()
   addControlButton()
   addMenuButtons()
-  updateBody()
 
   await observe()
 }
@@ -308,7 +286,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return sendResponse()
     case 'settings-changed':
       controller.settings = data.settings
-      updateBody()
       return sendResponse()
   }
 })
