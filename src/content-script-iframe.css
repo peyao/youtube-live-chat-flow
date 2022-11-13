@@ -43,6 +43,7 @@ yt-live-chat-header-renderer
 }
 #input-panel > yt-live-chat-message-input-renderer > #container {
   opacity: 1;
+  z-index: 1;
 }
 
 /* .ylcf-description */
