@@ -274,10 +274,12 @@ export default class FlowController {
 
     const duration = settings.displayTime * 1000
     const delay = settings.delayTime * 1000
+    // const easing = `steps(240, end)` // easing can be used to throttle message animation speed
     const keyframes = [
       { transform: `translate(${containerWidth}px, 0px)` },
       { transform: `translate(-${element.offsetWidth}px, 0px)` },
     ]
+    // const animation = element.animate(keyframes, { duration, delay, easing })
     const animation = element.animate(keyframes, { duration, delay })
     animation.pause()
     return animation
