@@ -15,6 +15,7 @@ const initialState: Settings = {
   backgroundOpacity: 0.4,
   bottomChatInputEnabled: true,
   chatVisible: true,
+  startEnabled: true,
   delayTime: 0,
   displayTime: 5,
   emojiStyle: 'image',
@@ -75,6 +76,7 @@ export default class SettingsModule extends VuexModule {
   backgroundOpacity = initialState.backgroundOpacity
   bottomChatInputEnabled = true
   chatVisible = true
+  startEnabled = true
   delayTime = initialState.delayTime
   displayTime = initialState.displayTime
   emojiStyle = initialState.emojiStyle
@@ -135,6 +137,10 @@ export default class SettingsModule extends VuexModule {
   @Mutation
   setChatVisible({ chatVisible }: { chatVisible: boolean }) {
     this.chatVisible = chatVisible
+  }
+  @Mutation
+  setStartEnabled({ startEnabled }: { startEnabled: boolean }) {
+    this.startEnabled = startEnabled
   }
   @Mutation
   setDelayTime({ delayTime }: { delayTime: number }) {

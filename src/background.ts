@@ -7,7 +7,7 @@ interface TabState {
   following: boolean
 }
 
-const initialState = { enabled: true, following: true }
+const initialState = { enabled: false, following: true }
 let tabStates: { [tabId: number]: TabState } = {}
 
 const getSettings = async () => {
@@ -27,13 +27,12 @@ const contentLoaded = async () => {
 }
 
 const iframeLoaded = async (tabId: number) => {
-  const enabled = initialState.enabled
+  const settings = await getSettings()
+  const enabled = settings.startEnabled;
   const following = initialState.following
   tabStates = { ...tabStates, [tabId]: { enabled, following } }
 
   await setIcon(tabId)
-
-  const settings = await getSettings()
 
   return { enabled, following, settings }
 }

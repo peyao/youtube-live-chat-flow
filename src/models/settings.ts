@@ -21,6 +21,7 @@ export type Style = {
 export type Settings = {
   background: boolean
   backgroundOpacity: number
+  startEnabled: boolean
   bottomChatInputEnabled: boolean
   chatVisible: boolean
   delayTime: number

@@ -8,6 +8,14 @@
       persistent-hint
       dense
     />
+    <v-switch
+      v-model="startEnabled"
+      class="mt-0 pt-0"
+      label="Enable Chat By Default"
+      hint="If disabled, live chat flow won't start until you enable it in the player's bottom controls."
+      persistent-hint
+      dense
+    />
     <!-- <v-switch
       v-model="bottomChatInputEnabled"
       class="mt-3 pt-0"
@@ -42,6 +50,16 @@ export default defineComponent({
         })
       },
     })
+    const startEnabled = computed({
+      get: () => {
+        return settingsStore.startEnabled
+      },
+      set: (value) => {
+        settingsStore.setStartEnabled({
+          startEnabled: value
+        })
+      }
+    })
     const bottomChatInputEnabled = computed({
       get: () => {
         return settingsStore.bottomChatInputEnabled
@@ -66,6 +84,7 @@ export default defineComponent({
     return {
       bottomChatInputEnabled,
       chatVisible,
+      startEnabled,
       growBottomChatInputEnabled,
     }
   },
