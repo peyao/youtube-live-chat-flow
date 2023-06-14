@@ -31,6 +31,33 @@
       label="Grow Bottom Chat Input"
       dense
     /> -->
+
+    <div class="caption" style="margin-top: 12px">Performance Throttling (0 to disable, higher values have higher impact on GPU)</div>
+    <v-slider
+      v-model="performanceThrottling"
+      class="align-center mb-5"
+      min="0"
+      max="240"
+      step="1"
+      dense
+      hide-details
+    >
+      <template #prepend>
+        <v-text-field
+          v-model="performanceThrottling"
+          class="mt-0 pt-0"
+          dense
+          hide-details
+          single-line
+          type="number"
+          min="0"
+          max="240"
+          step="1"
+          suffix=""
+          style="width: 75px"
+        />
+      </template>
+    </v-slider>
   </div>
 </template>
 
@@ -80,12 +107,23 @@ export default defineComponent({
         })
       },
     })
+    const performanceThrottling = computed({
+      get: () => {
+        return settingsStore.performanceThrottling
+      },
+      set: (value) => {
+        settingsStore.setPerformanceThrottling({
+          performanceThrottling: value
+        })
+      }
+    })
 
     return {
       bottomChatInputEnabled,
       chatVisible,
       startEnabled,
       growBottomChatInputEnabled,
+      performanceThrottling
     }
   },
 })

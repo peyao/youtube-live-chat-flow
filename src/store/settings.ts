@@ -29,6 +29,7 @@ const initialState: Settings = {
   maxWidth: 200,
   opacity: 0.8,
   outlineRatio: 0.015,
+  performanceThrottling: 0,
   overflow: 'overlay',
   stackDirection: 'top_to_bottom',
   styles: {
@@ -90,6 +91,7 @@ export default class SettingsModule extends VuexModule {
   maxWidth = initialState.maxWidth
   opacity = initialState.opacity
   outlineRatio = initialState.outlineRatio
+  performanceThrottling = initialState.performanceThrottling
   overflow = initialState.overflow
   stackDirection = initialState.stackDirection
   styles = initialState.styles
@@ -197,6 +199,10 @@ export default class SettingsModule extends VuexModule {
   @Mutation
   setOutlineRatio({ outlineRatio }: { outlineRatio: number }) {
     this.outlineRatio = outlineRatio
+  }
+  @Mutation
+  setPerformanceThrottling({ performanceThrottling }: { performanceThrottling: number }) {
+    this.performanceThrottling = performanceThrottling
   }
   @Mutation
   setOverflow({ overflow }: { overflow: Overflow }) {

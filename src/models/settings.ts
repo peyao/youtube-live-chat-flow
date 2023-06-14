@@ -37,6 +37,7 @@ export type Settings = {
   maxWidth: number
   opacity: number
   outlineRatio: number
+  performanceThrottling: number
   overflow: Overflow
   stackDirection: StackDirection
   styles: Styles
