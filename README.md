@@ -5,7 +5,7 @@
 ## Fork changes
 
 - Removed option to have bottom chat controls. YouTube's JS code seems to dislike the input box being moved somewhere else and would throw an error causing user to be unable to chat.
-- Bottom chat controls have been replaced with input box above the original chat box (see screenshot). It isn't visible in fullscreen unless you scroll down which is a downgrade.
+- Bottom chat controls have been replaced with input box above the original chat box (see screenshot's bottom right). It isn't visible in fullscreen unless you scroll down which is a downgrade.
 
 ![screenshot](.github/img/screenshot0.jpg)
 
