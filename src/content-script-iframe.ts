@@ -239,7 +239,8 @@ const observe = async () => {
   await controller.observe()
 
   const itemList = await querySelectorAsync('#item-list.yt-live-chat-renderer')
-  if (!itemList) {
+  const container = await querySelectorAsync('yt-live-chat-message-input-renderer #container')
+  if (!itemList || !container) {
     return
   }
 
@@ -248,6 +249,7 @@ const observe = async () => {
     await controller.observe()
   })
   observer.observe(itemList, { childList: true })
+  observer.observe(container, { childList: true });
 }
 
 const disconnect = () => {
@@ -296,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   controller.settings = data.settings
 
   await init()
-
+  
   window.addEventListener('unload', () => {
     disconnect()
     controller.clear()
