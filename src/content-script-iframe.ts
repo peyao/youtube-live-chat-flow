@@ -295,6 +295,13 @@ const observe = async () => {
   if (container) {
     observer.observe(container, { childList: true });
   }
+  
+  const video = getVideoElement()
+  if (!video) return
+  const videoResizeObserver = new ResizeObserver(() => {
+    addMessageContainer() // resize message container whenever video el resizes
+  })
+  videoResizeObserver.observe(video)
 }
 
 const disconnect = () => {
