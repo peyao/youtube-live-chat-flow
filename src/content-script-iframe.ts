@@ -221,13 +221,51 @@ const moveChatInputControl = () => {
   controlsObserver.observe(controls)
 }
 
-const addVideoEventListener = () => {
-  const video = parent.document.querySelector<HTMLVideoElement>(
+const getVideoElement = () => {
+  return parent.document.querySelector<HTMLVideoElement>(
     'ytd-watch-flexy video.html5-main-video'
   )
-  if (!video) {
+}
+
+// div container element where messages will be rendered,
+// this is used so we can add an overflow
+const addMessageContainer = () => {
+
+  const video = getVideoElement()
+  if (!video) return
+
+  let messageContainer = parent.document.querySelector<HTMLDivElement>(
+    '.ylcf-message-container'
+  )
+  if (messageContainer) {
+    copyVideoStyle(messageContainer, video)
     return
   }
+
+  const videoContainer = parent.document.querySelector<HTMLDivElement>(
+    '.ytd-player .html5-video-player'
+  )
+  if (!videoContainer) return
+
+  messageContainer = document.createElement('div')
+  messageContainer.style.overflow = 'hidden'
+  messageContainer.classList.add('ylcf-message-container')
+  messageContainer.style.position = 'absolute'
+  copyVideoStyle(messageContainer, video)
+
+  function copyVideoStyle(messageContainer: HTMLDivElement, video: HTMLVideoElement) {
+    messageContainer.style.top = video.style.top
+    messageContainer.style.left = video.style.left
+    messageContainer.style.height = video.style.height
+    messageContainer.style.width = video.style.width
+  }
+
+  videoContainer.appendChild(messageContainer)
+}
+
+const addVideoEventListener = () => {
+  const video = getVideoElement()
+  if (!video) return
 
   video.addEventListener('play', () => controller.play())
   video.addEventListener('pause', () => controller.pause())
@@ -238,18 +276,25 @@ const addVideoEventListener = () => {
 const observe = async () => {
   await controller.observe()
 
-  const itemList = await querySelectorAsync('#item-list.yt-live-chat-renderer')
-  const container = await querySelectorAsync('yt-live-chat-message-input-renderer #container')
-  if (!itemList || !container) {
-    return
-  }
+  // NOTES: Removed for now, not sure if necessary to re-observe.
+  // const itemList = await querySelectorAsync('#item-list.yt-live-chat-renderer')
+  // observer = new MutationObserver(async () => {
+  //   moveChatInputControl()
+  //   // await controller.observe()
+  // })
+  // if (itemList) {
+  //   observer.observe(itemList, { childList: true })
+  // }
 
-  observer = new MutationObserver(async () => {
+  observer = new MutationObserver(() => {
+    // alert("[observer callback] check console")
     moveChatInputControl()
-    await controller.observe()
   })
-  observer.observe(itemList, { childList: true })
-  observer.observe(container, { childList: true });
+
+  const container = await querySelectorAsync('yt-live-chat-message-input-renderer #container')
+  if (container) {
+    observer.observe(container, { childList: true });
+  }
 }
 
 const disconnect = () => {
@@ -266,6 +311,7 @@ const init = async () => {
   addVideoEventListener()
   addControlButton()
   addMenuButtons()
+  addMessageContainer()
 
   await observe()
 }
@@ -290,7 +336,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 })
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Used to prevent running handleDOMContentLoaded() twice.
+// Because handleVisibilityChange calls handleDomContentLoaded() when re-entering the tab,
+// but both handleVisibilityChange & DOMContentLoaded runs when going fullscreen.
+let alreadyInited = false
+
+function handleUnload() {
+  alreadyInited = false
+  disconnect()
+  controller.clear()
+  removeControlButton()
+  removeChatInputControl()
+}
+async function handleDOMContentLoaded() {
+  alreadyInited = true
   const data = await chrome.runtime.sendMessage({ type: 'iframe-loaded' })
 
   controller.enabled = data.enabled
@@ -299,10 +358,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await init()
   
-  window.addEventListener('unload', () => {
-    disconnect()
-    controller.clear()
-    removeControlButton()
-    removeChatInputControl()
-  })
-})
+  window.addEventListener('unload', handleUnload)
+}
+document.addEventListener('DOMContentLoaded', handleDOMContentLoaded)
+
+async function handleVisibilityChange() {
+  if (parent.document.visibilityState === "hidden") {
+    handleUnload()
+  } else if (!alreadyInited) {
+    handleDOMContentLoaded()
+  }
+}
+document.addEventListener("visibilitychange", handleVisibilityChange);
+

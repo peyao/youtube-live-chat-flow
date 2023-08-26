@@ -76,12 +76,12 @@
       </template>
     </v-slider>
 
-    <div class="caption">Max Displays per second (Infinite if set to 0)</div>
+    <div class="caption">Max Messages On Screen (0 is unlimited, set a max to improve performance)</div>
     <v-slider
       v-model="maxDisplays"
       class="align-center mb-5"
       min="0"
-      max="10"
+      max="200"
       dense
       hide-details
     >
@@ -94,7 +94,7 @@
           single-line
           type="number"
           min="0"
-          max="100"
+          max="200"
           style="width: 75px"
         />
       </template>

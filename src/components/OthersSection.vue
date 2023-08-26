@@ -32,7 +32,7 @@
       dense
     /> -->
 
-    <div class="caption" style="margin-top: 12px">Performance Throttling (0 to disable, higher values have higher impact on GPU)</div>
+    <div class="caption" style="margin-top: 12px">(Advanced) FPS Limiting (0 to disable, higher values have higher impact on GPU)</div>
     <v-slider
       v-model="performanceThrottling"
       class="align-center mb-5"

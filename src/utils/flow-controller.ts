@@ -1,42 +1,18 @@
-import { semaphore } from '@fiahfy/semaphore'
+import { semaphore } from '~/utils/semaphore'
 import { Message, Settings } from '~/models'
 import { querySelectorAsync, waitAllImagesLoaded } from '~/utils/dom-helper'
 import MessageSettings from '~/utils/message-settings'
 import { parse } from '~/utils/message-parser'
 import { render } from '~/utils/message-renderer'
 
-const sem = semaphore()
-
-const ClassName = {
-  filterActivated: 'ylcfr-active',
-  filteredMessage: 'ylcfr-filtered-message',
-  deletedMessage: 'ylcfr-deleted-message',
-}
+const SEM_PERMITS = Number.MAX_SAFE_INTEGER // overridden by "Max Messages" setting
+let sem = semaphore(SEM_PERMITS, SEM_PERMITS)
 
 interface Timeline {
   willAppear: number
   didAppear: number
   willDisappear: number
   didDisappear: number
-}
-
-class Limiter {
-  private limits: number
-  private count = 0
-  private expireTime = Date.now()
-
-  constructor(limits: number) {
-    this.limits = limits
-  }
-
-  isOver() {
-    const now = Date.now()
-    if (now > this.expireTime) {
-      this.count = 0
-      this.expireTime = now + 1000
-    }
-    return ++this.count > this.limits
-  }
 }
 
 export default class FlowController {
@@ -47,7 +23,6 @@ export default class FlowController {
   private observer: MutationObserver | undefined
   private followingTimer = -1
   private cleanupTimer = -1
-  private limiter: Limiter | undefined
 
   get enabled() {
     return this._enabled
@@ -90,57 +65,47 @@ export default class FlowController {
 
   set settings(value: Settings | undefined) {
     this._settings = value
-    this.limiter = new Limiter(value?.maxDisplays ?? 0)
+    const numSemPermits = value?.maxDisplays || SEM_PERMITS
+    sem = semaphore(numSemPermits, numSemPermits)
   }
 
   private async proceed(element: HTMLElement) {
-    if (!this._enabled || !this.settings) {
-      return
-    }
-
-    const video = parent.document.querySelector<HTMLVideoElement>(
-      'ytd-watch-flexy video.html5-main-video'
-    )
-    if (!video || video.paused) {
-      return
-    }
-
-    const container = parent.document.querySelector<HTMLElement>(
-      '.html5-video-container'
-    )
-    if (!container) {
-      return
-    }
-
-    const [lines, height] = this.getLinesAndHeight(
-      video.offsetHeight,
-      this.settings
-    )
-
-    const deleted = await this.validateDeletedMessage(element)
-    if (deleted) {
-      return
-    }
-
-    const message = await parse(element)
-    if (!message) {
-      return
-    }
-
-    if (this.settings.maxDisplays > 0 && this.limiter?.isOver()) {
-      return
-    }
-
-    const me = await this.createMessageElement(message, height, this.settings)
-    if (!me) {
-      return
-    }
-
-    me.style.display = 'none'
-    container.appendChild(me)
-    await waitAllImagesLoaded(me)
-
     sem.acquire(async () => {
+      if (!this._enabled || !this.settings) {
+        return
+      }
+
+      const video = parent.document.querySelector<HTMLVideoElement>(
+        'ytd-watch-flexy video.html5-main-video'
+      )
+      if (!video || video.paused) {
+        return
+      }
+
+      const container = parent.document.querySelector<HTMLElement>(
+        '.ylcf-message-container'
+      )
+      if (!container) return
+
+      const [lines, height] = this.getLinesAndHeight(
+        video.offsetHeight,
+        this.settings
+      )
+
+      const message = await parse(element)
+      if (!message) {
+        return
+      }
+
+      const me = await this.createMessageElement(message, height, this.settings)
+      if (!me) {
+        return
+      }
+
+      me.style.display = 'none'
+      container.appendChild(me)
+      await waitAllImagesLoaded(me)
+
       if (!this.settings || video.paused) {
         me.remove()
         return
@@ -149,8 +114,7 @@ export default class FlowController {
       me.style.display = 'flex'
 
       const messageRows = Math.ceil(me.offsetHeight / Math.ceil(height))
-      const containerWidth = container.offsetWidth
-      const timeline = this.createTimeline(me, containerWidth, this.settings)
+      const timeline = this.createTimeline(me, container.offsetWidth, this.settings)
 
       const index = this.getIndex(lines, messageRows, timeline)
       if (index + messageRows > lines && this.settings.overflow === 'hidden') {
@@ -171,11 +135,15 @@ export default class FlowController {
       me.style.opacity = String(opacity)
       me.style.zIndex = String(z + 1 + 11) // 11 is set to z-index on div.webgl
 
-      const animation = this.createAnimation(me, containerWidth, this.settings)
-      animation.onfinish = () => {
-        me.remove()
-      }
+      const animation = this.createAnimation(me, container.offsetWidth, this.settings)
       animation.play()
+
+      return new Promise((resolve) => {
+        animation.onfinish = () => {
+          me.remove()
+          resolve(); // sem is released on promise resolve
+        }
+      })
     })
   }
 
@@ -190,27 +158,6 @@ export default class FlowController {
     }
     lines = settings.maxLines > 0 ? Math.min(settings.maxLines, lines) : lines
     return [lines, height]
-  }
-
-  private async validateDeletedMessage(element: HTMLElement) {
-    const active = document.documentElement.classList.contains(
-      ClassName.filterActivated
-    )
-    if (!active) {
-      return false
-    }
-    const deleted = await new Promise<boolean>((resolve) => {
-      const expireTime = Date.now() + 1000
-      const timer = window.setInterval(() => {
-        const filtered = element.classList.contains(ClassName.filteredMessage)
-        if (filtered || Date.now() > expireTime) {
-          clearInterval(timer)
-          const deleted = element.classList.contains(ClassName.deletedMessage)
-          resolve(deleted)
-        }
-      }, 10)
-    })
-    return deleted
   }
 
   private async createMessageElement(
@@ -270,7 +217,6 @@ export default class FlowController {
     containerWidth: number,
     settings: Settings
   ) {
-    element.style.transform = `translate(${containerWidth}px, 0px)`
 
     const duration = settings.displayTime * 1000
     const delay = settings.delayTime * 1000
@@ -278,7 +224,7 @@ export default class FlowController {
     const easing = numSteps === 0 ? undefined : `steps(${numSteps}, end)`;
     const keyframes = [
       { transform: `translate(${containerWidth}px, 0px)` },
-      { transform: `translate(-${element.offsetWidth}px, 0px)` },
+      { transform: `translate(${0 - element.offsetWidth}px, 0px)` },
     ]
     const animation = element.animate(keyframes, { duration, delay, easing })
     animation.pause()
