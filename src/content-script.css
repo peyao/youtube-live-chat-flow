@@ -332,3 +332,16 @@
 ytd-watch-flexy #columns > #secondary {
   margin-top: var(--ytd-margin-2x);
 }
+
+.ylcf-control-chat-input {
+  position: absolute;
+  top: -30px;
+  color: #fff;
+  border: 0;
+  border-bottom: 3px solid grey;
+  background: transparent;
+}
+.ylcf-control-chat-input:focus {
+  border-bottom: 3px solid red;
+}
+

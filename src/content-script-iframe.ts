@@ -65,6 +65,56 @@ const addControlButton = () => {
   updateControlButton()
 }
 
+const removeChatInput = () => {
+  const chatInput = parent.document.querySelector('.ylcf-control-chat-input')
+  chatInput?.remove()
+}
+
+const addChatInput = () => {
+  removeChatInput()
+
+  const button = parent.document.querySelector('.ylcf-control-button')
+  if (!button) return
+
+  const chatInput = document.createElement('input')
+  chatInput.classList.add('ylcf-control-chat-input')
+
+  const handleKeydown = (e: KeyboardEvent) => {
+    e.stopPropagation() // prevent default controls (e.g. f - fullscreen) from receiving event
+    const el = e.target as HTMLElement
+    switch (e.key) {
+      case 'Enter': {
+        console.log("input value: ", chatInput.value)
+        if (!chatInput.value) {
+          el.blur()
+        } else {
+          const textNode = document.createTextNode(chatInput.value)
+          const officialChatInput = document.querySelector('#input.yt-live-chat-text-input-field-renderer')
+          console.log("el: ", officialChatInput)
+          officialChatInput?.appendChild(textNode)
+          // TODO: Doesn't work
+          // const sendButton = parent.document.querySelector<HTMLButtonElement>(
+          //   '#send-button button#button'
+          // )
+          // sendButton?.click()
+        }
+        break
+      }
+      case 'Escape':
+      case 'Tab':
+        el.blur()
+        break
+    }
+  }
+  chatInput.addEventListener('keydown', handleKeydown)
+  
+  const controls = parent.document.querySelector(
+    '.ytp-chrome-bottom .ytp-chrome-controls .ytp-right-controls'
+  )
+  if (!controls) return
+  controls.prepend(chatInput)
+}
+
 const updateMenuButtons = () => {
   for (const config of menuButtonConfigs) {
     const button = document.querySelector(`.${config.className}`)
@@ -164,6 +214,7 @@ const moveChatInputControl = () => {
   if (!leftControls || !rightControls) {
     return
   }
+  // ylcf-control-button
 
   const input = top.querySelector<HTMLInputElement>('div#input')
   const messageButtons = buttons.querySelector('#message-buttons')
@@ -173,6 +224,7 @@ const moveChatInputControl = () => {
   input.addEventListener('keydown', (e) => {
     e.stopPropagation()
     const el = e.target as HTMLElement
+    console.log("e: ", e)
     switch (e.key) {
       case 'Enter': {
         if (!e.isComposing) {
@@ -276,20 +328,20 @@ const addVideoEventListener = () => {
 const observe = async () => {
   await controller.observe()
 
-  // NOTES: Removed for now, not sure if necessary to re-observe.
-  // const itemList = await querySelectorAsync('#item-list.yt-live-chat-renderer')
-  // observer = new MutationObserver(async () => {
-  //   moveChatInputControl()
-  //   // await controller.observe()
-  // })
-  // if (itemList) {
-  //   observer.observe(itemList, { childList: true })
-  // }
-
-  observer = new MutationObserver(() => {
-    // alert("[observer callback] check console")
+  observer = new MutationObserver(async () => {
     moveChatInputControl()
+    await controller.observe()
   })
+
+  const itemList = await querySelectorAsync('#item-list.yt-live-chat-renderer')
+  if (itemList) {
+    observer.observe(itemList, { childList: true })
+  }
+
+  // observer = new MutationObserver(() => {
+  //   // alert("[observer callback] check console")
+  //   moveChatInputControl()
+  // })
 
   const container = await querySelectorAsync('yt-live-chat-message-input-renderer #container')
   if (container) {
@@ -318,6 +370,7 @@ const init = async () => {
   addVideoEventListener()
   addControlButton()
   addMenuButtons()
+  // addChatInput()
   addMessageContainer()
 
   await observe()
@@ -356,6 +409,7 @@ function handleUnload() {
   removeChatInputControl()
 }
 async function handleDOMContentLoaded() {
+  if (alreadyInited) return
   alreadyInited = true
   const data = await chrome.runtime.sendMessage({ type: 'iframe-loaded' })
 
@@ -372,7 +426,7 @@ document.addEventListener('DOMContentLoaded', handleDOMContentLoaded)
 async function handleVisibilityChange() {
   if (parent.document.visibilityState === "hidden") {
     handleUnload()
-  } else if (!alreadyInited) {
+  } else {
     handleDOMContentLoaded()
   }
 }
