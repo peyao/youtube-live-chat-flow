@@ -6,10 +6,11 @@ export const semaphore = (
   queueMax = Number.MAX_SAFE_INTEGER
 ): {
   acquire: (callback?: () => Promise<void>) => Promise<void>
-  release: () => void
+  release: () => void,
+  clear: () => void
 } => {
   let resources = permits
-  const queues: (() => void)[] = []
+  let queues: (() => void)[] = []
 
   const acquire = (): void => {
     if (resources > 0 && queues.length > 0) {
@@ -47,5 +48,8 @@ export const semaphore = (
         release()
       }, 0)
     },
+    clear: (): void => {
+      queues = []
+    }
   }
 }

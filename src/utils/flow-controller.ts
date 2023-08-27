@@ -323,6 +323,7 @@ export default class FlowController {
 
   disconnect() {
     clearInterval(this.cleanupTimer)
+    sem.clear()
     this.observer?.disconnect()
   }
 

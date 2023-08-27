@@ -3,6 +3,10 @@ import chat from '~/assets/chat.svg'
 import downArrow from '~/assets/down-arrow.svg'
 import refresh from '~/assets/refresh.svg'
 import { querySelectorAsync } from '~/utils/dom-helper'
+import {
+  CLASS, getControlButton, getMessageContainer, getRefIconButton,
+  getYouTubeLeftControls, getYouTubeRightControls
+} from '~/utils/elementSelectors'
 
 const controller = new FlowController()
 let observer: MutationObserver | undefined
@@ -26,22 +30,20 @@ const menuButtonConfigs = [
 ]
 
 const updateControlButton = () => {
-  const button = parent.document.querySelector('.ylcf-control-button')
-  button && button.setAttribute('aria-pressed', String(controller.enabled))
+  getControlButton(parent.document)
+    ?.setAttribute('aria-pressed', String(controller.enabled))
 }
 
 const removeControlButton = () => {
-  const button = parent.document.querySelector('.ylcf-control-button')
-  button && button.remove()
+  getControlButton(parent.document)
+    ?.remove()
 }
 
 const addControlButton = () => {
   removeControlButton()
 
-  const controls = parent.document.querySelector(
-    '.ytp-chrome-bottom .ytp-chrome-controls .ytp-right-controls'
-  )
-  if (!controls) {
+  const ytRightControls = getYouTubeRightControls(parent.document)
+  if (!ytRightControls) {
     return
   }
 
@@ -60,7 +62,7 @@ const addControlButton = () => {
     svg.setAttribute('width', '100%')
   }
 
-  controls.prepend(button)
+  ytRightControls.prepend(button)
 
   updateControlButton()
 }
@@ -72,20 +74,16 @@ const updateMenuButtons = () => {
       return
     }
     if (config.isActive()) {
-      button.classList.add('ylcf-active-menu-button')
+      button.classList.add(CLASS.ACTIVE_MENU_BUTTON)
     } else {
-      button.classList.remove('ylcf-active-menu-button')
+      button.classList.remove(CLASS.ACTIVE_MENU_BUTTON)
     }
   }
 }
 
 const addMenuButtons = () => {
-  const refIconButton = document.querySelector(
-    '#chat-messages > yt-live-chat-header-renderer > yt-icon-button'
-  )
-  if (!refIconButton) {
-    return
-  }
+  const refIconButton = getRefIconButton(document)
+  if (!refIconButton) return
 
   for (const config of menuButtonConfigs) {
     const icon = document.createElement('yt-icon')
@@ -96,7 +94,7 @@ const addMenuButtons = () => {
     iconButton.classList.add(
       'yt-live-chat-header-renderer',
       'style-scope',
-      'ylcf-menu-button',
+      CLASS.MENU_BUTTON,
       config.className
     )
     iconButton.title = config.title
@@ -112,16 +110,7 @@ const addMenuButtons = () => {
   updateMenuButtons()
 }
 
-const removeChatInputControl = () => {
-  const button = parent.document.querySelector('.ylcf-controller')
-  button && button.remove()
-  parent.document.body.classList.remove('ylcf-input-injected')
-}
-
 const moveChatInputControl = () => {
-  removeChatInputControl()
-
-  // if no channels
   const interaction = document.querySelector(
     'yt-live-chat-message-input-renderer #interaction-message'
   )
@@ -155,21 +144,14 @@ const moveChatInputControl = () => {
   }
 
   // check toolbar
-  const leftControls = parent.document.querySelector<HTMLInputElement>(
-    '.ytp-chrome-bottom .ytp-chrome-controls .ytp-left-controls'
-  )
-  const rightControls = parent.document.querySelector<HTMLInputElement>(
-    '.ytp-chrome-bottom .ytp-chrome-controls .ytp-right-controls'
-  )
-  if (!leftControls || !rightControls) {
-    return
-  }
+  const leftControls = getYouTubeLeftControls(parent.document)
+  const rightControls = getYouTubeRightControls(parent.document)
+  if (!leftControls || !rightControls) return
 
   const input = top.querySelector<HTMLInputElement>('div#input')
   const messageButtons = buttons.querySelector('#message-buttons')
-  if (!input || !messageButtons) {
-    return
-  }
+  if (!input || !messageButtons) return
+
   input.addEventListener('keydown', (e) => {
     e.stopPropagation()
     const el = e.target as HTMLElement
@@ -234,9 +216,7 @@ const addMessageContainer = () => {
   const video = getVideoElement()
   if (!video) return
 
-  let messageContainer = parent.document.querySelector<HTMLDivElement>(
-    '.ylcf-message-container'
-  )
+  let messageContainer = getMessageContainer(parent.document)
   if (messageContainer) {
     copyVideoStyle(messageContainer, video)
     return
@@ -276,20 +256,14 @@ const addVideoEventListener = () => {
 const observe = async () => {
   await controller.observe()
 
-  // NOTES: Removed for now, not sure if necessary to re-observe.
+  observer = new MutationObserver(async () => {
+    moveChatInputControl()
+  })
+
   // const itemList = await querySelectorAsync('#item-list.yt-live-chat-renderer')
-  // observer = new MutationObserver(async () => {
-  //   moveChatInputControl()
-  //   // await controller.observe()
-  // })
   // if (itemList) {
   //   observer.observe(itemList, { childList: true })
   // }
-
-  observer = new MutationObserver(() => {
-    // alert("[observer callback] check console")
-    moveChatInputControl()
-  })
 
   const container = await querySelectorAsync('yt-live-chat-message-input-renderer #container')
   if (container) {
@@ -313,7 +287,6 @@ const init = async () => {
   disconnect()
   controller.clear()
   removeControlButton()
-  removeChatInputControl()
 
   addVideoEventListener()
   addControlButton()
@@ -343,20 +316,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 })
 
-// Used to prevent running handleDOMContentLoaded() twice.
-// Because handleVisibilityChange calls handleDomContentLoaded() when re-entering the tab,
-// but both handleVisibilityChange & DOMContentLoaded runs when going fullscreen.
-let alreadyInited = false
-
-function handleUnload() {
-  alreadyInited = false
+function handleTermination() {
   disconnect()
   controller.clear()
   removeControlButton()
-  removeChatInputControl()
 }
 async function handleDOMContentLoaded() {
-  alreadyInited = true
   const data = await chrome.runtime.sendMessage({ type: 'iframe-loaded' })
 
   controller.enabled = data.enabled
@@ -364,16 +329,17 @@ async function handleDOMContentLoaded() {
   controller.settings = data.settings
 
   await init()
-  
-  window.addEventListener('unload', handleUnload)
+
+  const terminationEvent = 'onpagehide' in self ? 'pagehide' : 'unload';
+  window.addEventListener(terminationEvent, handleTermination)
 }
 document.addEventListener('DOMContentLoaded', handleDOMContentLoaded)
 
 async function handleVisibilityChange() {
   if (parent.document.visibilityState === "hidden") {
-    handleUnload()
-  } else if (!alreadyInited) {
-    handleDOMContentLoaded()
+    controller.pause()
+  } else {
+    controller.play()
   }
 }
 document.addEventListener("visibilitychange", handleVisibilityChange);

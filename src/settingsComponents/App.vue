@@ -28,10 +28,10 @@
 
 <script lang="ts">
 import { defineComponent } from '@vue/composition-api'
-import AppearanceSection from '~/components/AppearanceSection.vue'
-import BehaviorSection from '~/components/BehaviorSection.vue'
-import GeneralSection from '~/components/GeneralSection.vue'
-import OthersSection from '~/components/OthersSection.vue'
+import AppearanceSection from '~/settingsComponents/AppearanceSection.vue'
+import BehaviorSection from '~/settingsComponents/BehaviorSection.vue'
+import GeneralSection from '~/settingsComponents/GeneralSection.vue'
+import OthersSection from '~/settingsComponents/OthersSection.vue'
 import { settingsStore } from '~/store'
 
 export default defineComponent({
