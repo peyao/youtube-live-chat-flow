@@ -10,6 +10,7 @@
 - Live chat input has been moved on top of the live chat (right below the video). It isn't visible in fullscreen unless you scroll down.
 - Tab visibility awareness. Better performance when leaving/entering the tab.
 - Removed filtering due to performance concerns with original implementation.
+- Testing an FPS limiting / throttling option. I don't recommend using it due to very minor performance gains.
 
 ![screenshot](.github/img/screenshot0.jpg)
 
