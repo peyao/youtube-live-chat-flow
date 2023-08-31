@@ -2,7 +2,7 @@
 > Chrome Extension for Flow Chat Messages on YouTube Live.
 
 > [!IMPORTANT]
-> This is a fork of the original extension by fiahfy, which is no longer maintained.
+> This is a fork of the original extension by fiahfy.
 
 ## Fork changes from fiahfy's original extension
 
