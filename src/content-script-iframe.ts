@@ -204,17 +204,6 @@ const moveChatInputControl = () => {
   controlsObserver.observe(controls)
 }
 
-const resizeChatElement = () => {
-  const liveChatFrame = getYouTubeLiveChatFrame(parent.document)
-  const video = getYouTubeVideoElement(parent.document)
-  if (!liveChatFrame || !video) return
-
-  const videoBottomY = video.offsetTop + video.offsetHeight;
-  const height = `${parent.document.documentElement.clientHeight - videoBottomY - 60}px`;
-
-  liveChatFrame.style.height = height;
-}
-
 // div container element where messages will be rendered,
 // this is used so we can add an overflow
 const addMessageContainer = () => {
@@ -279,7 +268,6 @@ const observe = async () => {
 
   const videoResizeObserver = new ResizeObserver(() => {
     addMessageContainer() // resize message container whenever video el resizes
-    resizeChatElement()
   })
   videoResizeObserver.observe(video)
 }
@@ -297,7 +285,6 @@ const init = async () => {
   addVideoEventListener()
   addControlButton()
   addMenuButtons()
-  resizeChatElement()
   addMessageContainer()
 
   await observe()

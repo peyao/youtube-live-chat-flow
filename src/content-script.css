@@ -336,6 +336,9 @@ ytd-watch-flexy #columns > #secondary {
 /* NOTE: undo new format where chat window takes up dedicated right space */
 ytd-live-chat-frame {
   top: unset !important;
+  height: 1200px !important;
+  position: absolute !important;
+  bottom: unset !important;
 }
 ytd-watch-flexy #panels-full-bleed-container {
   width: 0 !important;
