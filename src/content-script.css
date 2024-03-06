@@ -332,3 +332,11 @@
 ytd-watch-flexy #columns > #secondary {
   margin-top: var(--ytd-margin-2x);
 }
+
+/* NOTE: undo new format where chat window takes up dedicated right space */
+ytd-live-chat-frame {
+  top: unset !important;
+}
+ytd-watch-flexy #panels-full-bleed-container {
+  width: 0 !important;
+}

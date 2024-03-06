@@ -5,7 +5,8 @@ import refresh from '~/assets/refresh.svg'
 import { querySelectorAsync } from '~/utils/dom-helper'
 import {
   CLASS, getControlButton, getMessageContainer, getRefIconButton,
-  getYouTubeLeftControls, getYouTubeRightControls
+  getYouTubeLeftControls, getYouTubeLiveChatFrame, getYouTubeRightControls,
+  getYouTubeVideoContainer, getYouTubeVideoElement
 } from '~/utils/elementSelectors'
 
 const controller = new FlowController()
@@ -203,17 +204,22 @@ const moveChatInputControl = () => {
   controlsObserver.observe(controls)
 }
 
-const getVideoElement = () => {
-  return parent.document.querySelector<HTMLVideoElement>(
-    'ytd-watch-flexy video.html5-main-video'
-  )
+const resizeChatElement = () => {
+  const liveChatFrame = getYouTubeLiveChatFrame(parent.document)
+  const video = getYouTubeVideoElement(parent.document)
+  if (!liveChatFrame || !video) return
+
+  const videoBottomY = video.offsetTop + video.offsetHeight;
+  const height = `${parent.document.documentElement.clientHeight - videoBottomY - 60}px`;
+
+  liveChatFrame.style.height = height;
 }
 
 // div container element where messages will be rendered,
 // this is used so we can add an overflow
 const addMessageContainer = () => {
 
-  const video = getVideoElement()
+  const video = getYouTubeVideoElement(parent.document)
   if (!video) return
 
   let messageContainer = getMessageContainer(parent.document)
@@ -222,9 +228,7 @@ const addMessageContainer = () => {
     return
   }
 
-  const videoContainer = parent.document.querySelector<HTMLDivElement>(
-    '.ytd-player .html5-video-player'
-  )
+  const videoContainer = getYouTubeVideoContainer(parent.document)
   if (!videoContainer) return
 
   messageContainer = document.createElement('div')
@@ -244,7 +248,7 @@ const addMessageContainer = () => {
 }
 
 const addVideoEventListener = () => {
-  const video = getVideoElement()
+  const video = getYouTubeVideoElement(parent.document)
   if (!video) return
 
   video.addEventListener('play', () => controller.play())
@@ -269,11 +273,13 @@ const observe = async () => {
   if (container) {
     observer.observe(container, { childList: true });
   }
-  
-  const video = getVideoElement()
+
+  const video = getYouTubeVideoElement(parent.document)
   if (!video) return
+
   const videoResizeObserver = new ResizeObserver(() => {
     addMessageContainer() // resize message container whenever video el resizes
+    resizeChatElement()
   })
   videoResizeObserver.observe(video)
 }
@@ -291,6 +297,7 @@ const init = async () => {
   addVideoEventListener()
   addControlButton()
   addMenuButtons()
+  resizeChatElement()
   addMessageContainer()
 
   await observe()

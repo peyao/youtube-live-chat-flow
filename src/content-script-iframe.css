@@ -49,6 +49,17 @@ yt-live-chat-header-renderer
   z-index: 1;
 }
 
+/**
+* Removes the tiny bit of space from our moved chat input.
+* The chat input was moved from under the chats, to on top of the chats, but left some padding.
+*/
+#panel-pages {
+  border: none !important;
+}
+yt-live-chat-message-input-renderer {
+  padding: 0 !important;
+}
+
 /* .ylcf-description */
 .ylcf-description {
   flex: 1;

@@ -1,12 +1,13 @@
 import { Settings } from '~/models'
 import { querySelectorAsync } from '~/utils/dom-helper'
+import { SELECTOR } from './utils/elementSelectors'
 
 let settings: Settings
 
 const isVideoUrl = () => new URL(location.href).pathname === '/watch'
 
 const waitCollapsed = async () => {
-  const iframe = await querySelectorAsync('ytd-live-chat-frame')
+  const iframe = await querySelectorAsync(SELECTOR.YTD_LIVE_CHAT_FRAME)
   return new Promise<boolean>((resolve) => {
     const expireTime = Date.now() + 1000
     const timer = window.setInterval(async () => {
@@ -33,6 +34,7 @@ const init = async () => {
     return
   }
 
+  // FIXME: Is this correct? I don't see an anchor in the DOM, but there is a button.
   const button = await querySelectorAsync<HTMLAnchorElement>(
     '#show-hide-button a'
   )
